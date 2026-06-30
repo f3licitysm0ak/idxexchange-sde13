@@ -1,9 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const pool = require("./connection_pool.js");
 
 
-const PORT = 3000; //default node.js port
+const PORT = 5000; //default node.js port is 3000, used 5000 from the project spec
 
 app.get("/api/health", async(req, res) => {
     try {
@@ -15,6 +16,7 @@ app.get("/api/health", async(req, res) => {
         })
 
     } catch(err) {
+        console.log("DB ERROR:", err);
         res.status(500).json({
         status: "error",
         database: "disconnected",
@@ -26,3 +28,4 @@ app.get("/api/health", async(req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
+
