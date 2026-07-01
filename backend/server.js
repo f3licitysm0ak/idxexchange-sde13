@@ -29,3 +29,34 @@ app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
 
+app.get("/api/properties", async(req, res) => {
+    try {
+
+        if (req.query.limit) {
+            LIMIT = `LIMIT ${limit}`;
+        }
+        if (req.query.offset) {
+            OFFSET = `OFFSET ${offset}`;
+        }
+        
+        const properties = await pool.query(`SELECT * FROM rets_property ORDER BY id ${LIMIT} ${OFFSET}`);
+
+        const filtersMap = new Map([
+            ['city', 'L_City'],
+            ['zipcode', 'L_Zip']
+        ]);
+
+        for (const [key, value] of filtersMap) {
+            if (req.query[key] !== undefined) {
+                query = query.where(value, '==', req.query[key]);
+            }
+        }
+
+
+
+    } catch(err) {
+
+    }
+
+});
+
