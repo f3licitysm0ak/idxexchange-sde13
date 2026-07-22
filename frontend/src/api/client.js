@@ -42,7 +42,7 @@ export function getPrimaryPhotoUrl(rawPhotos) {
     const parsed = Array.isArray(rawPhotos) ? rawPhotos : JSON.parse(rawPhotos);
 
     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
-      return parsed[0];
+      return parsed[0].trim();
     }
   } catch (err) {
     console.warn('Failed to parse L_Photos:', rawPhotos, err);

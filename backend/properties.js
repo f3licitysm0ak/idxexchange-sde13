@@ -80,13 +80,25 @@ router.get("/", async(req, res) => {
         const [total_count] = await pool.query(countQuery, values);
         const [properties] = await pool.query(filteredQuery, values);
 
+        const formattedProperties = properties.map(row => ({
+            ...row, // Keeps all original database fields intact just in case
+            id: row.id || row.L_ListingID,
+            price: row.L_SystemPrice,
+            address: row.L_Address || row.UnparsedAddress,
+            city: row.L_City,
+            state: row.L_State,
+            beds: row.L_Keyword2,
+            baths: row.LM_Dec_3,
+            sqft: row.L_SquareFeet,
+            L_Photos: row.L_Photos
+        }));
 
         res.status(200).json({
             total: total_count[0].total,
             results_length: properties.length,
             limit: LIMIT,
             offset: OFFSET,
-            results: properties
+            results: formattedProperties
         });
 
 
