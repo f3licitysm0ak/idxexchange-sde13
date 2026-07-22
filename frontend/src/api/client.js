@@ -7,7 +7,8 @@ async function handleResponse(response) {
         errorMessage = errorData.message;
       }
     } catch {
-      // Fallback to generic status message if body isn't JSON
+      //empty bc we are just passing forward the data OR the error if present 
+      
     }
     throw new Error(errorMessage);
   }
@@ -20,6 +21,7 @@ export async function fetchProperties(params = {}) {
   const url = `/api/properties${queryString ? `?${queryString}` : ''}`;
   
   const response = await fetch(url);
+
   return handleResponse(response);
 }
 

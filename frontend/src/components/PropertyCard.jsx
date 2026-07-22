@@ -1,5 +1,6 @@
 import React from 'react';
 import { getPrimaryPhotoUrl } from '../api/client'; //import for safely parsing photos
+import './PropertyCard.css'; //styling
 
 export function PropertyCard({ property }) {
   const photoUrl = getPrimaryPhotoUrl(property?.L_Photos);

@@ -42,7 +42,7 @@ export function ListingsPage() {
   //iterate over properties and render each property card 
   return (
     <div>
-      <h2>Showing {properties.length} properties of {totalCount}</h2>
+      <h2 class = "listings-heading">Showing {properties.length} properties of {totalCount}</h2>
       <div className="property-grid">
         {properties.map((prop) => (
           <PropertyCard key={prop.id} property={prop} />
