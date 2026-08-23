@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchProperties } from '../api/client';
 import { PropertyCard } from './PropertyCard';
 import { PropertyFilters } from './PropertyFilters';
+import { Pagination } from './Pagination';
 
 export function ListingsPage() {
   const [properties, setProperties] = useState([]);
@@ -9,6 +10,22 @@ export function ListingsPage() {
   const [filters, setFilters] = useState({}); //state for filters
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + properties.length;
+  const visibleProperties = properties;
+  const summaryStart = totalCount === 0 ? 0 : startIndex + 1;
+  const summaryEnd = Math.min(endIndex, totalCount);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -19,8 +36,13 @@ export function ListingsPage() {
         setError(null);
         setProperties([]);
 
-        
-        const data = await fetchProperties(filters);
+        const requestParams = {
+          ...filters,
+          limit: itemsPerPage,
+          offset: (safeCurrentPage - 1) * itemsPerPage,
+        };
+
+        const data = await fetchProperties(requestParams);
 
         if (!isCancelled) {
           setProperties(data.results || []);
@@ -42,14 +64,22 @@ export function ListingsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [filters]);
+  }, [filters, safeCurrentPage, itemsPerPage]);
 
   const handleSearch = (newFilters) => {
+    setCurrentPage(1);
     setFilters(newFilters);
   };
 
   const handleClear = () => {
+    setCurrentPage(1);
     setFilters({});
+  };
+
+  const handlePageChange = (nextPage) => {
+    const normalizedPage = Math.min(Math.max(1, nextPage), totalPages);
+    setCurrentPage(normalizedPage);
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -63,7 +93,7 @@ export function ListingsPage() {
       ) : (
         <>
           <h2 className="listings-heading">
-            Showing {properties.length} properties of {totalCount}
+            Showing {summaryStart}-{summaryEnd} of {totalCount} properties
           </h2>
 
           {properties.length === 0 ? (
@@ -74,11 +104,19 @@ export function ListingsPage() {
               </button>
             </div>
           ) : (
-            <div className="property-grid">
-              {properties.map((prop) => (
-                <PropertyCard key={prop.id} property={prop} />
-              ))}
-            </div>
+            <>
+              <div className="property-grid">
+                {visibleProperties.map((prop) => (
+                  <PropertyCard key={prop.id} property={prop} />
+                ))}
+              </div>
+
+              <Pagination
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </>
           )}
         </>
       )}
