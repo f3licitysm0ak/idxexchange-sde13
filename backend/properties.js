@@ -131,7 +131,7 @@ router.get("/:id/openhouses", async(req, res) => {
         let openhouse_query = `SELECT * FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC`;
         const [rows] = await pool.query(openhouse_query, [propertyId]);
     
-        res.status(200).json(rows[0]);
+        res.status(200).json(rows);
     } catch(err) {
         console.error("Database error details:", err);
         return res.status(500).json({ error: "Internal Server Error" });
@@ -165,7 +165,6 @@ router.get("/:id", async(req, res) => {
 });
 
 module.exports = router;
-
 
 
 

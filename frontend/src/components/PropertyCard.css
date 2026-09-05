@@ -8,6 +8,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 
 .property-card:hover {
@@ -22,6 +23,33 @@
   background-color: #e2e8f0;
   overflow: hidden;
   position: relative;
+}
+
+.card-carousel-button {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, .7);
+  color: white;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: .2rem .55rem;
+  transform: translateY(-50%);
+}
+.card-carousel-prev { left: .5rem; }
+.card-carousel-next { right: .5rem; }
+.card-photo-counter {
+  position: absolute;
+  right: .5rem;
+  bottom: .5rem;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, .7);
+  color: white;
+  font-size: .75rem;
+  padding: .2rem .4rem;
 }
 
 .card-image-container img {

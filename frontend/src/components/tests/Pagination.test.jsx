@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { Pagination } from '../Pagination';
 import { ListingsPage } from '../ListingsPage';
 import * as api from '../../api/client';
@@ -7,6 +8,7 @@ import * as api from '../../api/client';
 jest.mock('../../api/client', () => ({
   fetchProperties: jest.fn(),
   getPrimaryPhotoUrl: jest.fn(() => 'https://example.com/property.jpg'),
+  parsePhotos: jest.fn(() => []),
 }));
 
 const buildProperties = (count) =>
@@ -21,6 +23,12 @@ const buildProperties = (count) =>
     sqft: 1200 + index,
     L_Photos: [],
   }));
+
+const renderListingsPage = () => render(
+  <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <ListingsPage />
+  </MemoryRouter>
+);
 
 describe('Pagination component', () => {
   test('disables Previous on the first page and keeps Next enabled', () => {
@@ -97,7 +105,7 @@ describe('ListingsPage pagination behavior', () => {
       results: buildProperties(20),
     });
 
-    render(<ListingsPage />);
+    renderListingsPage();
 
     expect(await screen.findByText('Showing 1-20 of 43 properties')).toBeInTheDocument();
   });
@@ -108,7 +116,7 @@ describe('ListingsPage pagination behavior', () => {
       results: buildProperties(20),
     });
 
-    render(<ListingsPage />);
+    renderListingsPage();
 
     const cityInput = await screen.findByPlaceholderText(/e\.g\. Austin/i);
     fireEvent.change(cityInput, { target: { name: 'city', value: 'Austin' } });
@@ -129,7 +137,7 @@ describe('ListingsPage pagination behavior', () => {
       results: buildProperties(20),
     });
 
-    render(<ListingsPage />);
+    renderListingsPage();
 
     const nextPageButton = await screen.findByRole('button', { name: '2' });
     fireEvent.click(nextPageButton);
@@ -141,5 +149,65 @@ describe('ListingsPage pagination behavior', () => {
       });
     });
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+  });
+
+  test('resets pagination to the first page when filters change from a later page', async () => {
+    api.fetchProperties.mockResolvedValue({
+      total: 43,
+      results: buildProperties(20),
+    });
+
+    renderListingsPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: '2' }));
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        limit: 20,
+        offset: 20,
+      });
+    });
+
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Austin/i), {
+      target: { name: 'city', value: 'Austin' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /search/i }));
+
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        city: 'Austin',
+        limit: 20,
+        offset: 0,
+      });
+    });
+  });
+
+  test('resets pagination and removes filters when filters are cleared', async () => {
+    api.fetchProperties.mockResolvedValue({
+      total: 43,
+      results: buildProperties(20),
+    });
+
+    renderListingsPage();
+
+    fireEvent.change(await screen.findByPlaceholderText(/e\.g\. Austin/i), {
+      target: { name: 'city', value: 'Austin' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /search/i }));
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        city: 'Austin',
+        limit: 20,
+        offset: 0,
+      });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /clear filters/i }));
+
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        limit: 20,
+        offset: 0,
+      });
+    });
   });
 });

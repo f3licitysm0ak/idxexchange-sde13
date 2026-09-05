@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const INITIAL_FILTERS = {
   city: '',
-  zipCode: '',
+  zipcode: '',
   minPrice: '',
   maxPrice: '',
   beds: '',
@@ -54,12 +54,12 @@ export function PropertyFilters({ onSearch, onClear }) {
       </div>
 
       <div className="filter-group">
-        <label htmlFor="zipCode">ZIP Code</label>
+        <label htmlFor="zipcode">ZIP Code</label>
         <input
-          id="zipCode"
+          id="zipcode"
           type="text"
-          name="zipCode"
-          value={filters.zipCode}
+          name="zipcode"
+          value={filters.zipcode}
           onChange={handleChange}
           placeholder="e.g. 78701"
         />

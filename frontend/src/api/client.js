@@ -31,24 +31,28 @@ export async function getPropertyById(id) {
   return handleResponse(response);
 }
 
-//L_Photos image retrieval with default placeholder image
-export function getPrimaryPhotoUrl(rawPhotos) {
-  const DEFAULT_IMAGE = 'https://via.placeholder.com/400x300?text=No+Image+Available';
+export async function getOpenHouses(id) {
+  const response = await fetch(`/api/properties/${id}/openhouses`);
+  return handleResponse(response);
+}
 
+export function parsePhotos(rawPhotos) {
   if (!rawPhotos) {
-    return DEFAULT_IMAGE;
+    return [];
   }
 
   try {
-    //basically if it's alr an array parse that otherwise parse as json
     const parsed = Array.isArray(rawPhotos) ? rawPhotos : JSON.parse(rawPhotos);
-
-    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
-      return parsed[0].trim();
-    }
-  } catch (err) {
-    console.warn('Failed to parse L_Photos:', rawPhotos, err);
+    return Array.isArray(parsed)
+      ? parsed.filter((photo) => typeof photo === 'string' && photo.trim() !== '').map((photo) => photo.trim())
+      : [];
+  } catch {
+    return [];
   }
+}
 
-  return DEFAULT_IMAGE;
+//L_Photos image retrieval with default placeholder image
+export function getPrimaryPhotoUrl(rawPhotos) {
+  const DEFAULT_IMAGE = 'https://via.placeholder.com/400x300?text=No+Image+Available';
+  return parsePhotos(rawPhotos)[0] || DEFAULT_IMAGE;
 }

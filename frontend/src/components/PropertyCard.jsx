@@ -1,9 +1,10 @@
 import React from 'react';
-import { getPrimaryPhotoUrl } from '../api/client'; //import for safely parsing photos
+import { useNavigate } from 'react-router-dom';
+import { PropertyImageCarousel } from './PropertyImageCarousel';
 import './PropertyCard.css'; //styling
 
 export function PropertyCard({ property }) {
-  const photoUrl = getPrimaryPhotoUrl(property?.L_Photos);
+  const navigate = useNavigate();
 
   //price and sqft formatting
   const priceFormatted = new Intl.NumberFormat('en-US', {
@@ -15,10 +16,19 @@ export function PropertyCard({ property }) {
   const formattedSqFt = property.sqft? property.sqft.toLocaleString() : 'N/A';
   
   return (
-    <div className="property-card">
-      <div className = "card-image-container">
-        <img src={photoUrl} alt={property.address || 'Property Image'}/> 
-      </div>
+    <div
+      className="property-card"
+      role="link"
+      tabIndex={0}
+      onClick={() => navigate(`/property/${property.id}`)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          navigate(`/property/${property.id}`);
+        }
+      }}
+    >
+      <PropertyImageCarousel photos={property?.L_Photos} alt={property.address || 'Property Image'} />
       <div className="card-body">
         <h3 className="card-price">{priceFormatted}</h3>
         <p className="card-address">{property.address || 'Address Unavailable'}</p>
