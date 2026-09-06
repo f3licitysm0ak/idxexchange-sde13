@@ -2,6 +2,14 @@ const express = require("express");
 const router = express.Router(); //
 const pool = require("./connection_pool.js");
 
+const SORT_FIELDS = {
+    L_SystemPrice: "L_SystemPrice",
+    L_ListingDate: "L_ListingDate",
+    L_SquareFeet: "L_SquareFeet",
+    L_Keyword2: "L_Keyword2"
+};
+
+const SORT_ORDERS = new Set(["ASC", "DESC"]);
 
 router.get("/", async(req, res) => {
     try {
@@ -15,6 +23,23 @@ router.get("/", async(req, res) => {
                 message: "Invalid filter value"
             });
         }
+
+        const requestedSortBy = req.query.sortBy;
+        if (requestedSortBy !== undefined && !(requestedSortBy in SORT_FIELDS)) {
+            return res.status(400).json({
+                message: "Invalid sortBy value"
+            });
+        }
+
+        const rawSortOrder = String(req.query.sortOrder || "ASC").toUpperCase();
+        if (requestedSortBy !== undefined && !SORT_ORDERS.has(rawSortOrder)) {
+            return res.status(400).json({
+                message: "Invalid sortOrder value"
+            });
+        }
+
+        const sortBy = requestedSortBy || "L_SystemPrice";
+        const sortOrder = requestedSortBy ? rawSortOrder : "ASC";
 
         const filtersMap = new Map([
             ['city', 'L_City'],
@@ -73,10 +98,11 @@ router.get("/", async(req, res) => {
             whereClause = "";
         }
 
-        let countQuery = `SELECT COUNT(*) AS total FROM rets_property ${whereClause}`;
-        let filteredQuery = `SELECT * FROM rets_property ${whereClause} ORDER BY id LIMIT ${LIMIT} OFFSET ${OFFSET}`; //making sure the order is proper of SELECT then WHERE then ORDER BY
+        const orderByClause = requestedSortBy ? ` ORDER BY ${SORT_FIELDS[requestedSortBy]} ${sortOrder}` : " ORDER BY id";
 
-        
+        let countQuery = `SELECT COUNT(*) AS total FROM rets_property ${whereClause}`;
+        let filteredQuery = `SELECT * FROM rets_property ${whereClause}${orderByClause} LIMIT ${LIMIT} OFFSET ${OFFSET}`; //making sure the order is proper of SELECT then WHERE then ORDER BY
+
         const [total_count] = await pool.query(countQuery, values);
         const [properties] = await pool.query(filteredQuery, values);
 
@@ -100,9 +126,6 @@ router.get("/", async(req, res) => {
             offset: OFFSET,
             results: formattedProperties
         });
-
-
-
 
     } catch(err) {
         return res.status(500).json({

@@ -210,4 +210,42 @@ describe('ListingsPage pagination behavior', () => {
       });
     });
   });
+
+  test('includes sort parameters during pagination and clears them when filters change', async () => {
+    api.fetchProperties.mockResolvedValue({
+      total: 43,
+      results: buildProperties(20),
+    });
+
+    renderListingsPage();
+
+    fireEvent.change(screen.getByLabelText(/sort by/i), {
+      target: { value: 'L_SystemPrice' },
+    });
+    fireEvent.change(screen.getByLabelText(/order/i), {
+      target: { value: 'DESC' },
+    });
+
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        limit: 20,
+        offset: 0,
+        sortBy: 'L_SystemPrice',
+        sortOrder: 'DESC',
+      });
+    });
+
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Austin/i), {
+      target: { name: 'city', value: 'Austin' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /search/i }));
+
+    await waitFor(() => {
+      expect(api.fetchProperties).toHaveBeenLastCalledWith({
+        city: 'Austin',
+        limit: 20,
+        offset: 0,
+      });
+    });
+  });
 });
