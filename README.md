@@ -1,4 +1,4 @@
-# IDX Exchange Summer 2026 Intern Project — Property Search Application
+# IDX Exchange Summer 2026 Intern Project: Property Search Application
 
 A full-stack Zillow-inspired real estate property search application, built using React, Node.js/Express, and MySQL. The app allows users to search, filter, and view detailed MLS property listings, interactive maps, and open house schedules.
 
